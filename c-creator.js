@@ -38,7 +38,7 @@ export class CCreator extends LitElement {
     this.title = "Design Your Character";
     this.characterSettings = {
       seed: "00000000",
-      base: 0, // 0 for no hair, 1 for hair
+      base: 0,
       face: 0,
       faceitem: 0,
       hair: 0,
@@ -52,7 +52,7 @@ export class CCreator extends LitElement {
       fire: false,
       walking: false,
     };
-    this._applySeedToSettings(); // Ensure consistent character style on initialization
+    this._applySeedToSettings();
   }
 
   _applySeedToSettings() {
@@ -71,7 +71,7 @@ export class CCreator extends LitElement {
       this.characterSettings.hatColor,
     ] = values;
 
-    this.requestUpdate(); // Ensure UI updates after applying settings
+    this.requestUpdate();
   }
 
   static get properties() {
