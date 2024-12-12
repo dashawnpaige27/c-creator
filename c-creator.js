@@ -70,7 +70,8 @@ export class CCreator extends LitElement {
       this.characterSettings.skin,
       this.characterSettings.hatColor,
     ] = values;
-
+      
+    
     this.requestUpdate();
   }
 
@@ -82,10 +83,13 @@ export class CCreator extends LitElement {
   }
 
   _updateSetting(key, value) {
-    console.log(value);
-
-    this.characterSetting[key] = value;
+    this.characterSettings = { ...this.characterSettings, [key]: value };
+    console.log(this.characterSettings.faceitem)
+    //this._generateSeed();
+    this.requestUpdate();
   }
+
+  
 
   render() {
     return html`
@@ -107,19 +111,32 @@ export class CCreator extends LitElement {
               --hat-color: hsl(${this.characterSettings.hatColor}, 100%, 50%);
             "
         ></rpg-character>
-        <label>hair</label>
-        <wired-checkbox></wired-checkbox>
-        <label>walking</label>
-        <wired-checkbox></wired-checkbox>
-        <label>fire</label>
-        <wired-checkbox></wired-checkbox>
         <label>base</label>
-        <wired-slider></wired-slider>
+        <wired-checkbox
+        ?checked="${this.characterSettings.base===1}"
+        @change="${(e) => this._updateSetting('base', e.target.checked?1:0)}"
+      ></wired-checkbox>
+        <label>walking</label>
+        <wired-checkbox
+        .checked="${this.characterSettings.walking}"
+        @change="${(e) => this._updateSetting('walking', e.target.checked)}"
+        ></wired-checkbox>
+        <label>fire</label>
+        <wired-checkbox
+        .checked="${this.characterSettings.fire}"
+        @change="${(e) => this._updateSetting('fire', e.target.checked)}"
+        ></wired-checkbox>
+        <!-- <label>base</label> -->
+        <!-- <wired-slider></wired-slider> -->
         <label>face</label>
         <wired-slider
           value="${this.characterSettings.face}"
           min="0"
           max="5"
+          @change="${(e) => {
+            this._updateSetting("face", parseInt(e.detail.value));
+          }}"
+
         ></wired-slider>
         <label>faceitem</label>
         <wired-slider
@@ -137,6 +154,9 @@ export class CCreator extends LitElement {
           value="${this.characterSettings.pants}"
           min="0"
           max="9"
+          @change="${(e) => {
+            this._updateSetting("pants", parseInt(e.detail.value));
+          }}"
         ></wired-slider>
 
         <label>shirt</label>
@@ -145,6 +165,9 @@ export class CCreator extends LitElement {
           value="${this.characterSettings.shirt}"
           min="0"
           max="9"
+          @change="${(e) => {
+            this._updateSetting("shirt", parseInt(e.detail.value));
+          }}"
         ></wired-slider>
         <label>skin</label>
         <wired-slider
@@ -152,6 +175,9 @@ export class CCreator extends LitElement {
           value="${this.characterSettings.skin}"
           min="0"
           max="9"
+          @change="${(e) => {
+            this._updateSetting("skin", parseInt(e.detail.value));
+          }}"
         >
         </wired-slider>
         <label>hatColor</label>
@@ -159,8 +185,24 @@ export class CCreator extends LitElement {
           id="hatColor"
           value="${this.characterSettings.hatColor}"
           min="0"
-        >
           max="9"
+          @change="${(e) => {
+            this._updateSetting("hatColor", parseInt(e.detail.value));
+          }}"
+        >
+          
+        </wired-slider>
+        <label>hair</label>
+        <wired-slider
+          id="hair"
+          value="${this.characterSettings.hair}"
+          min="0"
+          max="9"
+          @change="${(e) => {
+            this._updateSetting("hair", parseInt(e.detail.value));
+          }}"
+        >
+          
         </wired-slider>
       </div>
     `;
