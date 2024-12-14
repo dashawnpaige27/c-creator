@@ -15,10 +15,10 @@ export class CCreator extends LitElement {
       display: block;
       padding: 16px;
       margin: 8px 0;
-      border: 2px solid var(--border-color, #060202);
+      border: 2px solid var(--border-color, #e9e6e6);
       border-radius: 8px;
       font-family: Arial, sans-serif;
-      background-color: var(--background-color, #060202);
+      background-color: var(--background-color, #f0eeee);
       color: var(--text-color, #000);
       transition: box-shadow 0.3s ease, transform 0.3s ease;
     }
