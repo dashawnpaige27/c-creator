@@ -1,6 +1,8 @@
 import { LitElement, html, css } from "lit";
 import "@haxtheweb/rpg-character/rpg-character.js";
 import "wired-elements";
+import { WiredButton } from "wired-elements";
+
 
 export class CCreator extends LitElement {
   static properties = {
@@ -13,10 +15,10 @@ export class CCreator extends LitElement {
       display: block;
       padding: 16px;
       margin: 8px 0;
-      border: 2px solid var(--border-color, #ccc);
+      border: 2px solid var(--border-color, #060202);
       border-radius: 8px;
       font-family: Arial, sans-serif;
-      background-color: var(--background-color, #fff);
+      background-color: var(--background-color, #060202);
       color: var(--text-color, #000);
       transition: box-shadow 0.3s ease, transform 0.3s ease;
     }
@@ -31,6 +33,43 @@ export class CCreator extends LitElement {
       --text-color: #fff;
       --border-color: #555;
     }
+     
+    
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+
+.character {
+  width: 80px; 
+  height: 80px; 
+  margin-bottom: 16px; 
+}
+
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+wired-slider {
+  width: 100%; 
+}
+
+wired-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px; 
+}
+    
+    
+    
   `;
 
   constructor() {
@@ -111,6 +150,9 @@ export class CCreator extends LitElement {
               --hat-color: hsl(${this.characterSettings.hatColor}, 100%, 50%);
             "
         ></rpg-character>
+
+        <div> Seed: ${this.characterSettings.seed}</div>
+
         <label>base</label>
         <wired-checkbox
         ?checked="${this.characterSettings.base===1}"
@@ -126,8 +168,9 @@ export class CCreator extends LitElement {
         .checked="${this.characterSettings.fire}"
         @change="${(e) => this._updateSetting('fire', e.target.checked)}"
         ></wired-checkbox>
-        <!-- <label>base</label> -->
-        <!-- <wired-slider></wired-slider> -->
+        
+        
+
         <label>face</label>
         <wired-slider
           value="${this.characterSettings.face}"
@@ -204,9 +247,72 @@ export class CCreator extends LitElement {
         >
           
         </wired-slider>
+
+        <label>Share Link</label>
+<wired-button
+  id="share-link"
+  @click="${() => this._generateShareLink()}"
+>
+  Generate Link
+</wired-button>
+
       </div>
     `;
   }
+
+  _generateSeed() {
+    const { 
+      accesories,
+      base,
+      face,
+      faceitem,
+      hair,
+      pants,
+      shirt,
+      skin,
+      hatColor,
+
+    } = this.characterSettings;
+    this.characterSettings.seed = `${accesories}${base}${face}${faceitem}${hair}${pants}${shirt}${skin}${hatColor}`;
+  }
+
+  _updateSetting(key, value) {
+    console.log("hi");
+    this.characterSettings = { ...this.characterSettings, [key]: value};
+    this._applySeedToSettings();
+    this.requestUpdate();
+  }
+  _applySeedToSettings() {
+    console.log("hello");
+    const array = [
+      this.characterSettings.accesories,
+      this.characterSettings.base,
+      this.characterSettings.face,
+      this.characterSettings.faceitem,
+      this.characterSettings.hair,
+      this.characterSettings.pants,
+      this.characterSettings.shirt,
+      this.characterSettings.skin,
+      this.characterSettings.hatColor,
+    ];
+    this.characterSettings.seed = array.join("");
+
+    this.requestUpdate();
+  }
+
+  _generateShareLink() {
+    const baseUrl = window.location.href.split("?")[0];
+    const params = new URLSearchParams({
+      seed: this.characterSettings.seed,
+    }).toString();
+    const shareLink = `${baseUrl}?${params}`;
+
+    navigator.clipboard.writeText(shareLink).then(
+      () => this._showNotification("Link copied!"),
+      (err) => this._showNotification(`Error: ${err}`)
+    );
+  }
+
 }
 
 customElements.define("c-creator", CCreator);
