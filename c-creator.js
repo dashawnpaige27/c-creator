@@ -3,73 +3,120 @@ import "@haxtheweb/rpg-character/rpg-character.js";
 import "wired-elements";
 import { WiredButton } from "wired-elements";
 
-
 export class CCreator extends LitElement {
   static properties = {
     title: { type: String },
     theme: { type: String },
+    characterSettings: { type: Object },
   };
 
   static styles = css`
     :host {
       display: block;
-      padding: 16px;
-      margin: 8px 0;
-      border: 2px solid var(--border-color, #e9e6e6);
+      padding: 20px;
+      background-color: #f5f8fa;
+      border: 1px solid #ddd;
       border-radius: 8px;
-      font-family: Arial, sans-serif;
-      background-color: var(--background-color, #f0eeee);
-      color: var(--text-color, #000);
-      transition: box-shadow 0.3s ease, transform 0.3s ease;
+      transition: background-color 0.3s ease;
     }
 
     :host(:hover) {
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-      transform: translateY(-2px);
+      background-color: #e8f0ff;
     }
 
-    :host([theme="dark"]) {
-      --background-color: #333;
-      --text-color: #fff;
-      --border-color: #555;
+    wired-button {
+      --wired-button-bg: #6a8dff;
+      --wired-button-hover-bg: #5a7eea;
+      --wired-button-text-color: #ffffff;
+      color: #000000;
+      border-radius: 4px;
+      transition: transform 0.2s ease;
+      font-size: 16px;
+      text-transform: none;
     }
-     
-    
 
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
+    wired-button:hover {
+      background-color: #5a7eea;
+    }
+
+    wired-button:active {
+      transform: scale(0.95);
+    }
+
+    .character {
+  background-color: #f4f4f4;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
-
-.character {
-  width: 80px; 
-  height: 80px; 
-  margin-bottom: 16px; 
-}
-
 
 .controls {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-wired-slider {
-  width: 100%; 
+    wired-checkbox[checked] {
+      --wired-checkbox-icon-color: #4caf50;
+      transition: transform 0.3s ease;
+    }
+
+    wired-slider:active {
+      --wired-slider-knob-color: #9b59b6;
+      --wired-slider-bar-color: #dcdcdc;
+    }
+
+    @media (min-width: 768px) {
+  .container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
 }
 
-wired-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 8px; 
-}
-    
-    
-    
+
+    wired-slider {
+      --wired-slider-knob-color: #6a8dff;
+      --wired-slider-bar-color: #ccc;
+      margin: 10px 0;
+    }
+
+    wired-checkbox,
+    wired-slider,
+    wired-button {
+      margin: 10px 0;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .character {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 16px;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+    }
+
+    wired-slider {
+      width: 100%;
+    }
+
+    wired-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
   `;
 
   constructor() {
@@ -91,11 +138,24 @@ wired-checkbox {
       fire: false,
       walking: false,
     };
-    this._applySeedToSettings();
+
+    this._applySeedToSettings(); 
+    this._checkForSeedInURL(); 
   }
 
-  _applySeedToSettings() {
-    const seed = this.characterSettings.seed;
+  
+  _checkForSeedInURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const seed = urlParams.get("seed");
+
+    if (seed) {
+      this.characterSettings.seed = seed;
+      this._applySeedToSettings(seed); 
+    }
+  }
+
+  
+  _applySeedToSettings(seed = this.characterSettings.seed) {
     const paddedSeed = seed.padStart(8, "0").slice(0, 8);
     const values = paddedSeed.split("").map((v) => parseInt(v, 10));
 
@@ -109,26 +169,41 @@ wired-checkbox {
       this.characterSettings.skin,
       this.characterSettings.hatColor,
     ] = values;
-      
-    
+
     this.requestUpdate();
   }
 
-  static get properties() {
-    return {
-      ...super.properties,
-      characterSettings: { type: Object },
-    };
+ 
+  _generateSeed() {
+    const { base, face, faceitem, hair, pants, shirt, skin, hatColor } = this.characterSettings;
+    this.characterSettings.seed = `${base}${face}${faceitem}${hair}${pants}${shirt}${skin}${hatColor}`;
   }
+
 
   _updateSetting(key, value) {
     this.characterSettings = { ...this.characterSettings, [key]: value };
-    console.log(this.characterSettings.faceitem)
-    //this._generateSeed();
+    this._generateSeed();
+    this._applySeedToSettings(); 
     this.requestUpdate();
   }
 
   
+  _generateShareLink() {
+    this._generateSeed(); 
+    const baseUrl = window.location.href.split("?")[0];
+    const params = new URLSearchParams({ seed: this.characterSettings.seed }).toString();
+    const shareLink = `${baseUrl}?${params}`;
+
+    navigator.clipboard.writeText(shareLink).then(
+      () => this._showNotification("Link copied!"),
+      (err) => this._showNotification(`Error: ${err}`)
+    );
+  }
+
+  
+  _showNotification(message) {
+    alert(message);
+  }
 
   render() {
     return html`
@@ -153,25 +228,25 @@ wired-checkbox {
 
         <div> Seed: ${this.characterSettings.seed}</div>
 
-        <label>base</label>
+        <label>Base</label>
         <wired-checkbox
-        ?checked="${this.characterSettings.base===1}"
-        @change="${(e) => this._updateSetting('base', e.target.checked?1:0)}"
-      ></wired-checkbox>
-        <label>walking</label>
-        <wired-checkbox
-        .checked="${this.characterSettings.walking}"
-        @change="${(e) => this._updateSetting('walking', e.target.checked)}"
+          ?checked="${this.characterSettings.base === 1}"
+          @change="${(e) => this._updateSetting('base', e.target.checked ? 1 : 0)}"
         ></wired-checkbox>
-        <label>fire</label>
-        <wired-checkbox
-        .checked="${this.characterSettings.fire}"
-        @change="${(e) => this._updateSetting('fire', e.target.checked)}"
-        ></wired-checkbox>
-        
-        
 
-        <label>face</label>
+        <label>Walking</label>
+        <wired-checkbox
+          .checked="${this.characterSettings.walking}"
+          @change="${(e) => this._updateSetting('walking', e.target.checked)}"
+        ></wired-checkbox>
+
+        <label>Fire</label>
+        <wired-checkbox
+          .checked="${this.characterSettings.fire}"
+          @change="${(e) => this._updateSetting('fire', e.target.checked)}"
+        ></wired-checkbox>
+
+        <label>Face</label>
         <wired-slider
           value="${this.characterSettings.face}"
           min="0"
@@ -179,11 +254,10 @@ wired-checkbox {
           @change="${(e) => {
             this._updateSetting("face", parseInt(e.detail.value));
           }}"
-
         ></wired-slider>
-        <label>faceitem</label>
+
+        <label>Face Item</label>
         <wired-slider
-          id="faceitem"
           value="${this.characterSettings.faceitem}"
           min="0"
           max="9"
@@ -191,9 +265,9 @@ wired-checkbox {
             this._updateSetting("faceitem", parseInt(e.detail.value));
           }}"
         ></wired-slider>
-        <label>pants</label>
+
+        <label>Pants</label>
         <wired-slider
-          id="pants"
           value="${this.characterSettings.pants}"
           min="0"
           max="9"
@@ -202,9 +276,8 @@ wired-checkbox {
           }}"
         ></wired-slider>
 
-        <label>shirt</label>
+        <label>Shirt</label>
         <wired-slider
-          id="shirt"
           value="${this.characterSettings.shirt}"
           min="0"
           max="9"
@@ -212,107 +285,48 @@ wired-checkbox {
             this._updateSetting("shirt", parseInt(e.detail.value));
           }}"
         ></wired-slider>
-        <label>skin</label>
+
+        <label>Skin</label>
         <wired-slider
-          id="skin"
           value="${this.characterSettings.skin}"
           min="0"
           max="9"
           @change="${(e) => {
             this._updateSetting("skin", parseInt(e.detail.value));
           }}"
-        >
-        </wired-slider>
-        <label>hatColor</label>
+        ></wired-slider>
+
+        <label>Hat Color</label>
         <wired-slider
-          id="hatColor"
           value="${this.characterSettings.hatColor}"
           min="0"
           max="9"
           @change="${(e) => {
             this._updateSetting("hatColor", parseInt(e.detail.value));
+            
           }}"
-        >
-          
-        </wired-slider>
-        <label>hair</label>
+        ></wired-slider>
+
+        <label>Hair</label>
         <wired-slider
-          id="hair"
           value="${this.characterSettings.hair}"
           min="0"
           max="9"
           @change="${(e) => {
             this._updateSetting("hair", parseInt(e.detail.value));
           }}"
-        >
-          
-        </wired-slider>
+        ></wired-slider>
 
         <label>Share Link</label>
-<wired-button
-  id="share-link"
-  @click="${() => this._generateShareLink()}"
->
-  Generate Link
-</wired-button>
-
+        <wired-button
+          id="share-link"
+          @click="${() => this._generateShareLink()}"
+        >
+          Generate Link
+        </wired-button>
       </div>
     `;
   }
-
-  _generateSeed() {
-    const { 
-      accesories,
-      base,
-      face,
-      faceitem,
-      hair,
-      pants,
-      shirt,
-      skin,
-      hatColor,
-
-    } = this.characterSettings;
-    this.characterSettings.seed = `${accesories}${base}${face}${faceitem}${hair}${pants}${shirt}${skin}${hatColor}`;
-  }
-
-  _updateSetting(key, value) {
-    console.log("hi");
-    this.characterSettings = { ...this.characterSettings, [key]: value};
-    this._applySeedToSettings();
-    this.requestUpdate();
-  }
-  _applySeedToSettings() {
-    console.log("hello");
-    const array = [
-      this.characterSettings.accesories,
-      this.characterSettings.base,
-      this.characterSettings.face,
-      this.characterSettings.faceitem,
-      this.characterSettings.hair,
-      this.characterSettings.pants,
-      this.characterSettings.shirt,
-      this.characterSettings.skin,
-      this.characterSettings.hatColor,
-    ];
-    this.characterSettings.seed = array.join("");
-
-    this.requestUpdate();
-  }
-
-  _generateShareLink() {
-    const baseUrl = window.location.href.split("?")[0];
-    const params = new URLSearchParams({
-      seed: this.characterSettings.seed,
-    }).toString();
-    const shareLink = `${baseUrl}?${params}`;
-
-    navigator.clipboard.writeText(shareLink).then(
-      () => this._showNotification("Link copied!"),
-      (err) => this._showNotification(`Error: ${err}`)
-    );
-  }
-
 }
 
 customElements.define("c-creator", CCreator);
